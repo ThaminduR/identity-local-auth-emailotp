@@ -122,6 +122,28 @@ public class EmailOTPExecutorTest {
     }
 
     @Test
+    public void testGetSendOTPEventForDeviceRegistrationFlow() {
+
+        when(flowExecutionContext.getFlowType()).thenReturn("DEVICE_REGISTRATION");
+        when(flowExecutionContext.getTenantDomain()).thenReturn(SUPER_TENANT);
+        FlowUser flowUser = mock(FlowUser.class);
+        when(flowExecutionContext.getFlowUser()).thenReturn(flowUser);
+        when(flowUser.getUsername()).thenReturn("testUser");
+        when(flowUser.getClaim(EMAIL_ADDRESS_CLAIM)).thenReturn(TEST_USER_EMAIL);
+        OTP otp = mock(OTP.class);
+        when(otp.getValue()).thenReturn(OTP_CODE);
+        when(otp.getGeneratedTimeInMillis()).thenReturn(System.currentTimeMillis());
+        when(otp.getExpiryTimeInMillis()).thenReturn(System.currentTimeMillis() + 60000);
+
+        Event event = emailOTPExecutor.getSendOTPEvent(OTPExecutorConstants.OTPScenarios.INITIAL_OTP,
+                otp, flowExecutionContext);
+
+        Assert.assertEquals(event.getEventProperties().get(CODE), OTP_CODE);
+        Assert.assertEquals(event.getEventProperties().get(NotificationConstants.EmailNotification.EMAIL_TEMPLATE_TYPE),
+                ExecutorConstants.EMAIL_OTP_VERIFY_TEMPLATE);
+    }
+
+    @Test
     public void testGetSendOTPEventResendOTP() {
 
         when(flowExecutionContext.getFlowType()).thenReturn("REGISTRATION");
